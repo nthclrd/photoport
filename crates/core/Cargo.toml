@@ -1,0 +1,22 @@
+[package]
+name = "photoport-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+idevice = { workspace = true }
+chrono = { workspace = true }
+rusqlite = { workspace = true }
+async-trait = "0.1"
+bytes = "1"
+async-channel = "2"
+futures = "0.3"
+kamadak-exif = "0.6"
+serde = { version = "1", features = ["derive"] }

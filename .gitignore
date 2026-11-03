@@ -1,0 +1,16 @@
+/target
+**/*.rs.bk
+Cargo.lock.bak
+.DS_Store
+.idea/
+.vscode/
+app/node_modules/
+app/dist/
+app/src-tauri/target/
+*.part
+*.photoport.part
+
+# Local test imports: personal photos, never commit
+/dump/
+/import/
+app/src-tauri/gen/
