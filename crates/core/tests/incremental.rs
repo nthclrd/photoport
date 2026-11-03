@@ -2,6 +2,7 @@ use photoport_core::db::{History, TransferKey, TransferRecord};
 use photoport_core::layout::{folder_from_epoch, DateStyle, Lang};
 use photoport_core::scan::build_plan;
 use photoport_core::source::mock::MockSource;
+use std::path::Path;
 
 fn sample() -> MockSource {
     MockSource::builder()
@@ -13,14 +14,11 @@ fn sample() -> MockSource {
 #[test]
 fn layout_fr_names_month() {
     // 2024-01-15 10:00:00 UTC => epoch 1705_312_800
-    let p = folder_from_epoch(1_705_312_800, DateStyle::YearMonthNamed(Lang::Fr));
-    assert_eq!(p.to_str().unwrap(), "2024/01 - Janvier");
-    let p = folder_from_epoch(1_705_312_800, DateStyle::YearMonthNamed(Lang::En));
-    assert_eq!(p.to_str().unwrap(), "2024/01 - January");
-    let p = folder_from_epoch(1_705_312_800, DateStyle::YearDashMonth);
-    assert_eq!(p.to_str().unwrap(), "2024-01");
-    let p = folder_from_epoch(1_705_312_800, DateStyle::Flat);
-    assert_eq!(p.to_str().unwrap(), "");
+    let at = |style| folder_from_epoch(1_705_312_800, style);
+    assert_eq!(at(DateStyle::YearMonthNamed(Lang::Fr)), Path::new("2024").join("01 - Janvier"));
+    assert_eq!(at(DateStyle::YearMonthNamed(Lang::En)), Path::new("2024").join("01 - January"));
+    assert_eq!(at(DateStyle::YearDashMonth), Path::new("2024-01"));
+    assert_eq!(at(DateStyle::Flat), Path::new(""));
 }
 
 #[tokio::test]
