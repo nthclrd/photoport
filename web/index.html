@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhotoPort : tes photos d'iPhone sur ton ordinateur</title>
+<meta name="description" content="Transfère les photos et vidéos de ton iPhone vers ton ordinateur par câble USB. Gratuit, open source, Windows, macOS et Linux.">
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg:#f5f6f8; --panel:#fff; --fg:#111418; --muted:#5d6671; --accent:#2563eb; --border:#e3e6eb; color-scheme:light dark; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1114; --panel:#171a1f; --fg:#eceff3; --muted:#8b939e; --accent:#4f8cff; --border:#252a32; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:64px 24px 48px; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .brand img { width:52px; height:52px; }
+  h1 { font-size:30px; margin:0; letter-spacing:-0.02em; }
+  .lead { color:var(--muted); margin:14px 0 32px; font-size:18px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px; }
+  .btn { display:inline-block; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; padding:14px 22px; border-radius:12px; font-size:17px; }
+  .btn.secondary { background:transparent; color:var(--accent); border:1px solid var(--border); font-weight:500; font-size:15px; padding:10px 16px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .note { margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+  ul { padding-left:20px; margin:8px 0 0; }
+  li { margin:4px 0; }
+  code { font:13px ui-monospace,Menlo,Consolas,monospace; background:var(--bg); border:1px solid var(--border); padding:2px 6px; border-radius:5px; }
+  h2 { font-size:18px; margin:40px 0 8px; }
+  footer { margin-top:48px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <img src="icon.png" alt="">
+    <h1>PhotoPort</h1>
+  </div>
+  <p class="lead">Tes photos et vidéos d'iPhone sur ton ordinateur, par câble. Sans iTunes, sans iCloud, sans app sur l'iPhone. Gratuit et open source.</p>
+
+  <section class="card" id="download">
+    <p class="muted">Recherche de la dernière version…</p>
+  </section>
+
+  <h2>Comment ça marche</h2>
+  <ul>
+    <li>Branche ton iPhone, déverrouille-le, touche « Faire confiance ».</li>
+    <li>Choisis un dossier, clique « Importer les nouvelles photos ».</li>
+    <li>Les photos sont rangées par année et par mois. Les suivantes : seulement les nouvelles.</li>
+  </ul>
+
+  <h2>Autres systèmes</h2>
+  <p class="row small" id="others"></p>
+
+  <footer class="small muted">
+    Licence MIT · <a id="repo-link" href="#">Code source</a> · <a id="all-link" href="#">Toutes les versions</a>
+  </footer>
+</main>
+
+<script>
+  // Set to the GitHub "owner/repository" that publishes the releases.
+  const REPO = "nthclrd/photoport";
+
+  const releasesPage = `https://github.com/${REPO}/releases/latest`;
+  document.getElementById("repo-link").href = `https://github.com/${REPO}`;
+  document.getElementById("all-link").href = `https://github.com/${REPO}/releases`;
+
+  const TARGETS = {
+    windows: { label: "Windows", match: (n) => /_x64-setup\.exe$/i.test(n) },
+    macos: { label: "macOS", match: (n) => /_universal\.dmg$/i.test(n) },
+    deb: { label: "Linux (.deb)", match: (n) => /_amd64\.deb$/i.test(n) },
+    appimage: { label: "Linux (.AppImage)", match: (n) => /_amd64\.AppImage$/i.test(n) },
+  };
+
+  // Each entry: list of paragraphs; a paragraph is a list of strings, links and code.
+  const NOTES = {
+    windows: [
+      ["Nécessite l'app gratuite « Apple Devices » d'Apple, une seule fois : ",
+       { href: "https://apps.microsoft.com/detail/9NP83LWLPZ9K", text: "Microsoft Store" },
+       ". PhotoPort te le rappellera si elle manque."],
+      ["Si Windows affiche « Windows a protégé votre ordinateur » : « Informations complémentaires », puis « Exécuter quand même »."],
+    ],
+    macos: [
+      ["Rien d'autre à installer. Ouvre le .dmg et glisse PhotoPort dans Applications."],
+      ["Au premier lancement : clic droit sur PhotoPort, puis « Ouvrir »."],
+    ],
+    deb: [["Double-clique le fichier, ou lance ", { code: "sudo apt install ./PhotoPort_*.deb" }, "."]],
+    appimage: [
+      ["Installe d'abord usbmuxd (par exemple ", { code: "sudo dnf install usbmuxd" }, ")."],
+      ["Puis rends le fichier exécutable : ", { code: "chmod +x PhotoPort_*.AppImage" }, "."],
+    ],
+  };
+
+  function detectOs() {
+    const p = (navigator.userAgentData?.platform || navigator.platform || "").toLowerCase();
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|android/.test(ua)) return "mobile";
+    if (p.includes("win") || ua.includes("windows")) return "windows";
+    if (p.includes("mac") || ua.includes("mac os")) return "macos";
+    // The browser cannot tell the distribution: offer .deb, with AppImage next to it.
+    if (p.includes("linux") || ua.includes("linux")) return "deb";
+    return "unknown";
+  }
+
+  function el(tag, props = {}, ...children) {
+    const e = document.createElement(tag);
+    Object.assign(e, props);
+    for (const c of children) e.append(c);
+    return e;
+  }
+
+  function renderNote(paragraphs) {
+    const box = el("div", { className: "note small muted" });
+    for (const parts of paragraphs) {
+      const p = el("p");
+      for (const part of parts) {
+        if (typeof part === "string") p.append(part);
+        else if (part.href) p.append(el("a", { href: part.href, textContent: part.text, rel: "noopener" }));
+        else p.append(el("code", { textContent: part.code }));
+      }
+      box.append(p);
+    }
+    return box;
+  }
+
+  function render(assets, version) {
+    const os = detectOs();
+    const card = document.getElementById("download");
+    card.replaceChildren();
+    const find = (k) => assets.find((a) => TARGETS[k].match(a.name));
+
+    if (os === "mobile") {
+      card.append(el("p", { textContent: "PhotoPort s'installe sur l'ordinateur. Ouvre cette page sur ton PC ou ton Mac." }));
+    } else if (os !== "unknown" && find(os)) {
+      const a = find(os);
+      card.append(
+        el("div", { className: "row" },
+          el("a", { className: "btn", href: a.browser_download_url, textContent: `Télécharger pour ${TARGETS[os].label}` }),
+          el("span", { className: "muted small", textContent: `${version} · ${(a.size / 1048576).toFixed(0)} Mo` })),
+      );
+      if (os === "deb" && find("appimage")) {
+        card.append(el("p", { className: "small" },
+          "Autre distribution ? ",
+          el("a", { href: find("appimage").browser_download_url, textContent: "Version AppImage" })));
+      }
+      card.append(renderNote(NOTES[os]));
+    } else {
+      card.append(el("p", {}, "Choisis ton système ci-dessous, ou ", el("a", { href: releasesPage, textContent: "vois tous les fichiers" }), "."));
+    }
+
+    const others = document.getElementById("others");
+    others.replaceChildren();
+    for (const k of Object.keys(TARGETS)) {
+      const a = find(k);
+      if (a && k !== os) others.append(el("a", { className: "btn secondary", href: a.browser_download_url, textContent: TARGETS[k].label }));
+    }
+  }
+
+  function fallback() {
+    const card = document.getElementById("download");
+    card.replaceChildren(
+      el("a", { className: "btn", href: releasesPage, textContent: "Voir la dernière version" }),
+      el("p", { className: "small muted", textContent: "Choisis le fichier correspondant à ton système sur la page GitHub." }),
+    );
+  }
+
+  fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((rel) => render(rel.assets || [], rel.tag_name))
+    .catch(fallback);
+</script>
+</body>
+</html>

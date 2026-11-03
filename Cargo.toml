@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/cli"]
+exclude = ["app/src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["PhotoPort contributors"]
+repository = "https://github.com/nthclrd/photoport"
+rust-version = "1.78"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"
+humantime = "2"
+idevice = { version = "0.1.68", default-features = false, features = ["usbmuxd", "afc", "pair", "ring"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
