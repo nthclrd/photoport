@@ -105,7 +105,8 @@ jobs:
         run: |
           bin=target/release/photoport
           [ "$RUNNER_OS" = "Windows" ] && bin="$bin.exe"
-          name="photoport-cli-${RUNNER_OS,,}-$(uname -m)"
+          # macOS ships bash 3.2: no ${VAR,,} lowercase expansion.
+          name="photoport-cli-$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')-$(uname -m)"
           [ "$RUNNER_OS" = "Windows" ] && name="$name.exe"
           cp "$bin" "$name"
           gh release upload "${GITHUB_REF_NAME}" "$name" --clobber

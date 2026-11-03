@@ -27,7 +27,7 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Tests (mock iPhone, no device needed)
-        run: cargo test --workspace
+        run: cargo test --workspace --no-fail-fast
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: CLI release build
